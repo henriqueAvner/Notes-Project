@@ -13,93 +13,22 @@ Use este documento como checklist: implemente cada requisito, valide as mensagen
 - **Checklist passo-a-passo**
 - **Exemplos de requests / responses**
 
-**Requisitos Obrigatórios**
+Instalação de dependências (recomendada)
 
-Objetivo: construir uma API que gerencie anotações pessoais com três tipos: `note` (anotações), `todo` (tarefas) e `meeting` (reuniões). Os dados ficarão em memória (mock). As mensagens de erro e os códigos HTTP descritos são usados nos testes; implemente-as exatamente.
+Instale as bibliotecas mínimas necessárias para validação, autenticação (JWT) e ambiente. Execute na raiz do projeto (PowerShell):
 
-Modelo de dados (mock)
-- `Note` (objeto):
-	- `id` (number)
-	- `title` (string) — obrigatório, mínimo 3 caracteres
-	- `content` (string) — obrigatório
-	- `type` (string) — `note` | `todo` | `meeting`
-	- `date` (string ISO) — obrigatório quando `type` === `meeting`
-	- `completed` (boolean) — apenas para `todo`, default `false`
-	- `createdAt` (string ISO)
-	- `updatedAt` (string ISO)
+```powershell
+npm install class-validator class-transformer dotenv jsonwebtoken bcryptjs
+```
 
-Endpoints obrigatórios (comportamento e mensagens)
+Dependências opcionais (Passport / Nest JWT):
 
-1) POST `/auth/login`
-- Body: `{ "username": "user1", "password": "secret" }`
-- Comportamento: autenticação simulada com dados mock em `src/mocks/users.ts`.
-- Respostas esperadas:
-	- 400 quando campos faltando:
-		- `{ "message": "Some required fields are missing" }`
-	- 401 quando credenciais inválidas:
-		- `{ "message": "Invalid credentials" }`
-	- 200 quando sucesso:
-		- `{ "token": "<token>" }` (pode ser um JWT assinado com `JWT_SECRET` ou um token mock)
+```powershell
+npm install @nestjs/jwt passport passport-jwt
+npm install --save-dev @types/passport-jwt
+```
 
-2) POST `/notes`
-- Requere autenticação (header `Authorization: Bearer <token>`).
-- Body mínimo: `{ "title": "...", "content": "...", "type": "note|todo|meeting"[, "date": "ISO-date"] }`
-- Validações / respostas:
-	- 400 se `title` ausente ou menor que 3 caracteres:
-		- `{ "message": "\"title\" length must be at least 3 characters long" }`
-	- 400 se `content` ausente:
-		- `{ "message": "Some required fields are missing" }`
-	- 400 se `type` inválido:
-		- `{ "message": "\"type\" must be one of [note,todo,meeting]" }`
-	- 400 se `type` === `meeting` e `date` ausente:
-		- `{ "message": "\"date\" is required for meeting type" }`
-	- 201 quando criado: retorna o objeto criado com `id`, `createdAt`, `updatedAt`.
 
-3) GET `/notes`
-- Requere autenticação.
-- 200: retorna um array com todas as notas (padrão). Suportar filtros:
-	- `?type=todo` filtra por tipo
-	- `?completed=true` filtra tarefas concluídas
-
-4) GET `/notes/:id`
-- Requere autenticação.
-- 200: retorna o objeto nota.
-- 404 se não existe:
-	- `{ "message": "Note does not exist" }`
-
-5) PUT `/notes/:id`
-- Requere autenticação.
-- Permite atualizar `title`, `content` e `completed` (quando `type === 'todo'`).
-- 400 se campos obrigatórios faltando.
-- 200 retorna o objeto atualizado.
-
-6) DELETE `/notes/:id`
-- Requere autenticação.
-- 204 sem conteúdo quando deletado com sucesso.
-- 404 se não existe: `{ "message": "Note does not exist" }`
-
-Autenticação e mensagens de token
-- Implementar middleware que valide `Authorization: Bearer <token>`.
-- Mensagens exatas:
-	- 401 quando token ausente: `{ "message": "Token not found" }`
-	- 401 quando token inválido/expirado: `{ "message": "Expired or invalid token" }`
-
-Requisitos Bônus (opcionais)
-- Associar notes a owners (usuários): somente o dono pode editar/deletar. Mensagem de não autorizado: `{ "message": "Unauthorized user" }` com status 401.
-- Suporte a paginação em `GET /notes` via `?page=&limit=`.
-- Persistência substituível: criar interface de repositório para trocar facilmente por DB.
-
-Orientações de implementação (Nest.js)
-- Estrutura sugerida de arquivos:
-	- `src/app.module.ts`
-	- `src/auth/auth.module.ts`, `auth.service.ts`, `auth.controller.ts`
-	- `src/notes/notes.module.ts`, `notes.controller.ts`, `notes.service.ts`
-	- `src/notes/dto/create-note.dto.ts`, `update-note.dto.ts`
-	- `src/repositories/notes.repository.ts` (mock in-memory)
-	- `src/mocks/users.ts`, `src/mocks/notes.ts` (dados iniciais)
-
-- Padrões e dicas:
-	- Controllers: apenas lidar com requisões/respostas e validação via DTOs.
 	- Services: lógica de negócio (validações mais complexas, regras de autorização).
 	- Repository: CRUD em memória (arrays), responsável por timestamps.
 	- DTOs com `class-validator`. Para garantir mensagens exatas, trate `ValidationPipe` e intercepte mensagens para formatá-las quando necessário.
@@ -162,6 +91,119 @@ Erro de validação (exemplo):
 ```
 400 { "message": "Some required fields are missing" }
 ```
+
+Instalação de dependências
+
+Recomendo instalar as bibliotecas listadas abaixo para facilitar validação, autenticação (JWT) e gerenciamento de variáveis de ambiente. Rode estes comandos no PowerShell na raiz do projeto.
+
+Dependências essenciais:
+```powershell
+npm install class-validator class-transformer dotenv jsonwebtoken bcryptjs
+```
+
+Dependências opcionais para integração com Passport/Nest JWT (se preferir usar os módulos do Nest):
+```powershell
+npm install @nestjs/jwt passport passport-jwt
+npm install --save-dev @types/passport-jwt
+```
+
+Dependências de desenvolvimento (recomendadas):
+```powershell
+npm install --save-dev nodemon ts-node-dev
+```
+
+Após instalar, adicione ao `package.json` scripts úteis, por exemplo:
+```json
+"scripts": {
+	"start": "nest start",
+	"start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+	"test": "jest"
+}
+```
+
+Modelos de mocks e onde implementá-los
+
+Estrutura sugerida para mocks e repositório em memória:
+
+- `src/mocks/users.ts` — usuários mock (autenticação)
+- `src/mocks/notes.ts` — notas iniciais (opcional)
+- `src/repositories/notes.repository.ts` — repositório em memória (CRUD)
+
+Exemplo de `src/mocks/users.ts` (TypeScript):
+```ts
+export const users = [
+	{
+		id: 1,
+		username: 'user1',
+		// armazene senha hasheada ou texto plano para desenvolvimento; se usar hash, salve com bcryptjs
+		password: '$2a$10$abcdefghijklmnopqrstuv',
+		displayName: 'Usuário Teste'
+	}
+];
+```
+
+Exemplo de `src/mocks/notes.ts` (TypeScript):
+```ts
+export const notes = [
+	{
+		id: 1,
+		title: 'Lembrar de estudar',
+		content: 'Revisar padrões do Nest.js',
+		type: 'note',
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	},
+	{
+		id: 2,
+		title: 'Comprar material',
+		content: 'Caneta, caderno',
+		type: 'todo',
+		completed: false,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	}
+];
+```
+
+Exemplo de `src/repositories/notes.repository.ts` (esqueleto):
+```ts
+import { notes } from '../mocks/notes';
+
+export class NotesRepository {
+	private data = notes; // referência ao mock
+
+	getAll() { return this.data; }
+	getById(id: number) { return this.data.find(n => n.id === id); }
+	create(note) {
+		const id = this.data.length ? Math.max(...this.data.map(n => n.id)) + 1 : 1;
+		const newNote = { id, ...note, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+		this.data.push(newNote);
+		return newNote;
+	}
+	update(id: number, attrs) {
+		const note = this.getById(id);
+		if (!note) return null;
+		Object.assign(note, attrs, { updatedAt: new Date().toISOString() });
+		return note;
+	}
+	delete(id: number) {
+		const idx = this.data.findIndex(n => n.id === id);
+		if (idx === -1) return false;
+		this.data.splice(idx, 1);
+		return true;
+	}
+}
+```
+
+Onde usar cada camada
+- `src/mocks` — apenas arrays/objetos que representam dados iniciais; não coloque lógica aqui.
+- `src/repositories` — CRUD em memória; centraliza operações com os mocks e gera timestamps/ids.
+- `src/notes/notes.service.ts` — usar o `NotesRepository` para regras de negócio (validações específicas, checar tipos, regras de `meeting`/`todo`).
+- `src/notes/notes.controller.ts` — expor endpoints e mapear DTOs para chamadas ao service.
+
+Boas práticas ao trabalhar com mocks
+- Manter o repositório in-memory separado das rotas facilita substituir por persistência real no futuro.
+- Evitar compartilhamento global mutável entre testes: para testes, importe os mocks e faça clones (`JSON.parse(JSON.stringify(...))`) antes de cada caso.
 
 Próximos passos
 - Se quiser, eu posso gerar os arquivos esqueleto do Nest.js para este projeto (controllers, services, DTOs e repositório mock). Quer que eu faça isto agora?
