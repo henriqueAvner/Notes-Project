@@ -40,7 +40,7 @@ export class AnotacaoRepositoryService {
 
   private nextId = 5;
 
-  async get(): Promise<Anotacao[]> {
+  async getAll(): Promise<Anotacao[]> {
     return this.anotacoes;
   }
 
