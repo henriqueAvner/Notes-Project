@@ -52,10 +52,14 @@ export class AnotacaoRepositoryService {
     return findNote;
   }
 
-  async create(anotacaoData: Omit<Anotacao, 'id'>): Promise<Anotacao> {
+  async create(
+    anotacaoData: Omit<Anotacao, 'id' | 'dataCriacao' | 'dataAtualizacao'>,
+  ): Promise<Anotacao> {
     const newAnotacao: Anotacao = {
       id: this.nextId++,
       ...anotacaoData,
+      dataCriacao: new Date(),
+      dataAtualizacao: new Date(),
     };
     this.anotacoes.push(newAnotacao);
     console.log(`A anotação ${anotacaoData.titulo} foi adicionada`);
@@ -65,7 +69,11 @@ export class AnotacaoRepositoryService {
   async update(id: number, newNode: UpdateAnotacoesDto): Promise<boolean> {
     const indexNote = this.anotacoes.findIndex((note) => note.id === id);
     if (indexNote !== -1) {
-      this.anotacoes[indexNote] = { ...this.anotacoes[indexNote], ...newNode };
+      this.anotacoes[indexNote] = {
+        ...this.anotacoes[indexNote],
+        ...newNode,
+        dataAtualizacao: new Date(),
+      };
       return true;
     }
     return false;
