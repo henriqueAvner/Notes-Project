@@ -1,26 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAnotacoesDto } from './dto/create-anotacoes.dto';
 import { UpdateAnotacoesDto } from './dto/update-anotacoes.dto';
+import { AnotacaoRepositoryService } from './anotacao-repository/anotacao-repository.service';
 
 @Injectable()
 export class AnotacoesService {
+  constructor(private readonly notesRepository: AnotacaoRepositoryService) {}
   create(createAnotacoesDto: CreateAnotacoesDto) {
-    return 'This action adds a new anotacoe';
+    return this.notesRepository.create(createAnotacoesDto);
   }
 
   findAll() {
-    return `This action returns all anotacoes`;
+    return this.notesRepository.getAll();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} anotacoe`;
+    const currNote = this.notesRepository.getById(id);
+    if (currNote == null) {
+      throw new NotFoundException(`Funcionário com ID ${id} não encontrado.`);
+    }
+    return currNote;
   }
 
   update(id: number, updateAnotacoesDto: UpdateAnotacoesDto) {
-    return `This action updates a #${id} anotacoe`;
+    return this.notesRepository.update(id, updateAnotacoesDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} anotacoe`;
+    return this.notesRepository.delete(id);
   }
 }
