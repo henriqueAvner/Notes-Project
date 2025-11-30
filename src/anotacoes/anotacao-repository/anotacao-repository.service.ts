@@ -43,8 +43,7 @@ export class AnotacaoRepositoryService {
   private nextId = 5;
 
   async getAll(): Promise<any[]> {
-    const queryText = 'select * from db_notes.t_anotacoes';
-
+    const queryText = 'select * from t_anotacoes';
     try {
       const result = await this.dataBaseService.pool.query(queryText);
       return result.rows;
