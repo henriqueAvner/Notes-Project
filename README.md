@@ -3,13 +3,13 @@
 ## Sobre o projeto:
 <summary><strong>O que foi desenvolvido:</strong></summary>
 
-Neste projeto foi desenvolvida uma API de anotações em memória (mocked) usando `Nest.js`.
+Neste projeto foi desenvolvida uma API de anotações com `PostgreSQL` usando `Nest.js`.
 
-As tecnologias utilizadas foram: `Node.js`, `Nest.js`, `class-validator` e testes com `Jest`.
+As tecnologias utilizadas foram: `Node.js`, `Nest.js`, `class-validator`, `PostgreSQL` e testes com `Jest`.
 
 1. Foram desenvolvidos endpoints que seguem os princípios REST para gerenciar anotações e reuniões;
 
-2. Os dados são mantidos em memória usando repositórios mockados (não há banco de dados);
+2. Os dados são mantidos em um banco `PostgreSQL` criado para consulta, leitura, autalização e deleção.
 
 3. As rotas estão organizadas em módulos (`anotacoes`, `reunioes`) e seguem as convenções do Nest.js;
 
