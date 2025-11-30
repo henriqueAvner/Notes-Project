@@ -9,7 +9,7 @@ export class DatabaseService implements OnModuleDestroy {
     this.pool = new Pool({
       user: 'postgres',
       host: 'localhost',
-      database: 'postgres',
+      database: 'NOTES_DB',
       password: '159263',
       port: 5432,
     });
