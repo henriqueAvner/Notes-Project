@@ -73,7 +73,7 @@ As tecnologias utilizadas foram: `Node.js`, `Nest.js`, `class-validator`, `Postg
 {
   "titulo": "Sprint Planning",
   "descricao": "Planejar as tarefas do próximo sprint",
-  "horario": "14:00 (Terça-feira, 3 de Dezembro)",
+  "horario": "05/12/2025 14:00",
   "confirmacao": false
 }
 ```
