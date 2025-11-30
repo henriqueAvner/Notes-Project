@@ -2,9 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { Anotacao } from '../interfaces/anotacao.interface';
 import { UpdateAnotacoesDto } from '../dto/update-anotacoes.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class AnotacaoRepositoryService {
+  constructor(private readonly dataBaseService: DatabaseService) {}
   private anotacoes: Anotacao[] = [
     {
       id: 1,
@@ -40,8 +42,16 @@ export class AnotacaoRepositoryService {
 
   private nextId = 5;
 
-  async getAll(): Promise<Anotacao[]> {
-    return this.anotacoes;
+  async getAll(): Promise<any[]> {
+    const queryText = 'select * from db_notes.t_anotacoes';
+
+    try {
+      const result = await this.dataBaseService.pool.query(queryText);
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar todos os items: ', error);
+      throw new Error('Falha ao buscar items no banco de dados.');
+    }
   }
 
   async getById(id: number): Promise<Anotacao> {
