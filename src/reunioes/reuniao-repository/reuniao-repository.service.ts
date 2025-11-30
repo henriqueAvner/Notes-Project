@@ -2,76 +2,65 @@
 import { Injectable } from '@nestjs/common';
 import { Meeting } from '../interfaces/reuniao-interface';
 import { UpdateReunioesDto } from '../dto/update-reunioes.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class ReuniaoRepositoryService {
-  private meetingAgenda: Meeting[] = [
-    {
-      id: 101,
-      titulo: 'Apresentação do Módulo Alpha',
-      descricao:
-        'Revisão final das funcionalidades desenvolvidas no Sprint atual.',
-      horario: '14:00 (Terça-feira, 3 de Dezembro)',
-      confirmacao: true,
-    },
-    {
-      id: 102,
-      titulo: 'Brainstorming de Marketing',
-      descricao:
-        'Sessão para gerar ideias de conteúdo para o lançamento do produto.',
-      horario: '10:30 (Quarta-feira, 4 de Dezembro)',
-      confirmacao: false, // Ainda não confirmada
-    },
-    {
-      id: 103,
-      titulo: 'One-on-One com o Gestor',
-      descricao: 'Discussão de progresso pessoal e feedback de desempenho.',
-      horario: '16:00 (Quinta-feira, 5 de Dezembro)',
-      confirmacao: true,
-    },
-  ];
-
+  constructor(private readonly databaseService: DatabaseService) {}
   private nextId = 104;
 
-  async getAll(): Promise<Meeting[]> {
-    return this.meetingAgenda;
+  async getAll(): Promise<Meeting[] | undefined> {
+    const queryAllMeetings = `select * from t_reunioes`;
+    try {
+      const result = await this.databaseService.pool.query(queryAllMeetings);
+      return result.rows as Meeting[];
+    } catch (error) {
+      console.error('Erro ao trazer todas as reunioes', error);
+      throw new Error('Falha ao buscar reunioes no banco de dados.');
+    }
   }
 
   async getById(id: number): Promise<Meeting | undefined> {
-    const currMeeting = this.meetingAgenda.findIndex((meet) => meet.id === id);
-    if (currMeeting !== -1) {
-      return this.meetingAgenda[currMeeting];
+    const queryMeetById = `select * from t_reunioes where id = ${id}`;
+    try {
+      const result = await this.databaseService.pool.query(queryMeetById);
+      return result.rows[0] as Meeting;
+    } catch (error) {
+      console.error('Erro ao trazer a reuniao', error);
+      throw new Error('Falha ao buscar reuniao no banco de dados.');
     }
-    return;
   }
 
   async create(meetData: Omit<Meeting, 'id'>): Promise<Meeting> {
-    const newMeeting: Meeting = {
-      id: this.nextId++,
-      ...meetData,
-      confirmacao: false,
-    };
-    this.meetingAgenda.push(newMeeting);
-    return newMeeting;
+    const createMeeting = `insert into t_reunioes(titulo, descricao, horario) values('${meetData.titulo}', '${meetData.descricao}', '${meetData.horario}')`;
+    try {
+      const result = await this.databaseService.pool.query(createMeeting);
+      return result.rows[0] as Meeting;
+    } catch (error) {
+      console.error('Erro ao criar a reuniao', error);
+      throw new Error('Falha ao criar reuniao no banco de dados.');
+    }
   }
 
   async update(id: number, newMeeting: UpdateReunioesDto): Promise<boolean> {
-    const indexMeet = this.meetingAgenda.findIndex((meet) => meet.id === id);
-    if (indexMeet !== -1) {
-      this.meetingAgenda[indexMeet] = {
-        ...this.meetingAgenda[indexMeet],
-        ...newMeeting,
-      };
+    const updateMeeting = `update t_reunioes set titulo = '${newMeeting.titulo}',descricao = '${newMeeting.descricao}',confirmacao = '${newMeeting.confirmacao}', horario = '${newMeeting.horario}' where id = ${id}`;
+    try {
+      await this.databaseService.pool.query(updateMeeting);
       return true;
+    } catch (error) {
+      console.error('Erro ao atualizar a reuniao', error);
+      throw new Error('Falha ao atualizar reuniao no banco de dados.');
     }
-    return false;
   }
 
-  async delete(id: number) {
-    const indexMeet = this.meetingAgenda.findIndex((meet) => meet.id === id);
-    if (indexMeet == -1) {
-      throw new Error('This meeting doesnt exist');
+  async delete(id: number): Promise<boolean> {
+    const deleteMeeting = `delete from t_reunioes where id = ${id}`;
+    try {
+      await this.databaseService.pool.query(deleteMeeting);
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar a reuniao', error);
+      throw new Error('Falha ao deletar reuniao no banco de dados.');
     }
-    this.meetingAgenda.splice(indexMeet, 1);
   }
 }

@@ -10,10 +10,7 @@ export class CreateReunioesDto {
   descricao: string;
 
   @IsString()
-  @IsNotEmpty({
-    message:
-      'Preencha um horário para a reunião. Ex.: (14:00 (Terça-feira, 3 de Dezembro))',
-  })
+  @IsNotEmpty({ message: 'O horário não pode estar vazio' })
   horario: string;
 
   @IsBoolean()
