@@ -54,43 +54,48 @@ export class AnotacaoRepositoryService {
   }
 
   async getById(id: number): Promise<Anotacao> {
-    const findNote = this.anotacoes.find((note) => note.id === id);
-    if (!findNote) {
-      throw new Error(`Anotacao with id ${id} not found`);
+    const queryText = `select * from t_anotacoes where id = ${id}`;
+    try {
+      const result = await this.dataBaseService.pool.query(queryText);
+      return result.rows[0] as Anotacao;
+    } catch (error) {
+      console.error('Erro ao buscar o item: ', error);
+      throw new Error('Falha ao buscar items no banco de dados.');
     }
-    return findNote;
   }
 
   async create(
     anotacaoData: Omit<Anotacao, 'id' | 'dataCriacao' | 'dataAtualizacao'>,
   ): Promise<Anotacao> {
-    const newAnotacao: Anotacao = {
-      id: this.nextId++,
-      ...anotacaoData,
-      dataCriacao: new Date(),
-      dataAtualizacao: new Date(),
-    };
-    this.anotacoes.push(newAnotacao);
-    console.log(`A anotação ${anotacaoData.titulo} foi adicionada`);
-    return newAnotacao;
+    const queryCreate = `insert into t_anotacoes(titulo, conteudo) values('${anotacaoData.titulo}', '${anotacaoData.conteudo}')`;
+    try {
+      const result = await this.dataBaseService.pool.query(queryCreate);
+      console.log(result.rows[0]);
+      return result.rows[0] as Anotacao;
+    } catch (error) {
+      console.error('Erro ao adicionar o item: ', error);
+      throw new Error('Falha ao adicionar item no banco de dados.' + error);
+    }
   }
 
   async update(id: number, newNode: UpdateAnotacoesDto): Promise<boolean> {
-    const indexNote = this.anotacoes.findIndex((note) => note.id === id);
-    if (indexNote !== -1) {
-      this.anotacoes[indexNote] = {
-        ...this.anotacoes[indexNote],
-        ...newNode,
-        dataAtualizacao: new Date(),
-      };
+    const queryUpdate = `update t_anotacoes set titulo = '${newNode.titulo}', conteudo = '${newNode.conteudo}' where id = ${id}`;
+    try {
+      const result = await this.dataBaseService.pool.query(queryUpdate);
+      console.log(result.rows);
       return true;
+    } catch (error) {
+      console.error('Erro ao adicionar o item: ', error);
+      throw new Error('Falha ao adicionar item no banco de dados.' + error);
     }
-    return false;
   }
   async delete(id: number) {
-    const indexNote = this.anotacoes.findIndex((note) => note.id === id);
-    if (indexNote !== -1) {
-      this.anotacoes.splice(indexNote, 1);
+    const queryDelete = `delete from t_anotacoes where id = ${id}`;
+    try {
+      await this.dataBaseService.pool.query(queryDelete);
+    } catch (error) {
+      console.error('Erro ao adicionar o item: ', error);
+      throw new Error('Falha ao adicionar item no banco de dados.' + error);
     }
   }
 }
