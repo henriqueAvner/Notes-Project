@@ -85,8 +85,8 @@ export class AnotacaoRepositoryService {
       console.log(result.rows);
       return true;
     } catch (error) {
-      console.error('Erro ao adicionar o item: ', error);
-      throw new Error('Falha ao adicionar item no banco de dados.' + error);
+      console.error('Erro ao atualizar o item: ', error);
+      throw new Error('Falha ao atualizar o item no banco de dados.' + error);
     }
   }
   async delete(id: number) {
