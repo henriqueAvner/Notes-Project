@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { User } from '../interfaces/user.interface';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { randomBytes, scrypt as _scrypt } from 'crypto';
+import { promisify } from 'util';
+
+const scrypt = promisify(_scrypt);
 
 @Injectable()
 export class UserRepositoryService {
@@ -19,12 +24,27 @@ export class UserRepositoryService {
     return result.rows[0] as User | null;
   }
 
-  async create(userData: Omit<User, 'id'>): Promise<User> {
+  async create(userData: Omit<User, 'id'>) {
+    const findUser = `select email from t_usuarios where email ='${userData.email}'`;
+    const existingUser = await this.dataBaseService.pool.query(findUser);
+    if (existingUser.rows.length > 0) {
+      return new BadRequestException('email in use');
+    }
+    const salt = randomBytes(8).toString('hex');
+    const hash = (await scrypt(userData.senha, salt, 32)) as Buffer;
+    const saltAndHash = `${salt}.${hash.toString('hex')}`;
+
+    const user = {
+      ...userData,
+      senha: saltAndHash,
+    };
     const queryCreate = `insert into t_usuarios(nome, email, senha, cargo, data_cadastro) 
-                        values('${userData.nome}', '${userData.email}', '${userData.senha}', '${userData.cargo}', NOW())`;
+                        values('${user.nome}', '${user.email}', '${user.senha}', '${user.cargo}', NOW())`;
     try {
-      const result = await this.dataBaseService.pool.query(queryCreate);
-      return result.rows[0] as User;
+      await this.dataBaseService.pool.query(queryCreate);
+      console.log('Usuário cadastrado', user);
+      const { senha: _, ...resultUser } = user;
+      return resultUser;
     } catch (error) {
       console.error('Erro ao criar usuário: ', error);
       throw new Error('Falha ao adicionar usuário no banco de dados.' + error);
