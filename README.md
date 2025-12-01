@@ -80,6 +80,50 @@ As tecnologias utilizadas foram: `Node.js`, `Nest.js`, `class-validator` e teste
 
 <br />
 
+**Autenticação / Usuários**
+
+- **Descrição:** o projeto possui endpoints para criação e autenticação de usuários implementados sob o módulo `users` (rota base `/users`).
+
+- **Rotas principais:**
+
+| Rota | Funcionalidade | Tipo |
+|---|---:|:--:|
+| `/users/signup` | Criar novo usuário | `POST` |
+| `/users/signin` | Autenticar usuário (login) | `POST` |
+| `/users` | Listar usuários (se disponível) | `GET` |
+| `/users/:id` | Obter usuário por ID | `GET` |
+| `/users/:id` | Atualizar usuário | `PATCH` |
+| `/users/:id` | Excluir usuário | `DELETE` |
+
+- **Payloads de exemplo**
+
+  - `POST /users/signup` (criar usuário)
+
+  ```json
+  {
+    "nome": "Avner",
+    "email": "avner@example.com",
+    "senha": "Minhasenha123",
+    "cargo": "dev",
+    "ativo": true
+  }
+  ```
+
+  - `POST /users/signin` (autenticar)
+
+  ```json
+  {
+    "email": "avner@example.com",
+    "senha": "Minhasenha123"
+  }
+  ```
+
+- **Comportamento atual no código:**
+  - Ao criar um usuário o repositório gera um `salt` e aplica `scrypt` para armazenar `senha` como `salt.hash`.
+  - O endpoint `signin` valida a senha comparando hash e retorna o objeto do usuário (sem a propriedade `senha`).
+  - No estado atual **não** há geração de JWT automática no `signin` (o retorno é o perfil do usuário sem a senha).
+
+
 ## Observações sobre formatos de data
 - Internamente as datas são armazenadas como `Date`.
 - Caso queira apresentar datas no formato `dd/MM/YYYY`, utilize o helper `src/utils/formatDate.ts` na saída (controller, repositório ou via interceptor).
