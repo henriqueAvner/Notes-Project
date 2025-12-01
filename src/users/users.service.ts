@@ -15,6 +15,10 @@ export class UsersService {
     });
   }
 
+  signIn(email: string, senha: string) {
+    return this.usersRepository.signIn(email, senha);
+  }
+
   findAll() {
     return this.usersRepository.getAll();
   }

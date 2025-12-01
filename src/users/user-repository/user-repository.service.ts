@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { User } from '../interfaces/user.interface';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -49,6 +53,23 @@ export class UserRepositoryService {
       console.error('Erro ao criar usuário: ', error);
       throw new Error('Falha ao adicionar usuário no banco de dados.' + error);
     }
+  }
+
+  async signIn(email: string, senha: string) {
+    const query = `select * from t_usuarios where email = '${email}'`;
+    const findUser = await this.dataBaseService.pool.query(query);
+    const user = findUser.rows[0] as User;
+    if (!user) {
+      return new UnauthorizedException('Invalid credentials');
+    }
+    const [salt, storedHash] = user.senha.split('.');
+    const hash = (await scrypt(senha, salt, 32)) as Buffer;
+    if (storedHash != hash.toString('hex')) {
+      return new UnauthorizedException('Invalid credentials');
+    }
+    console.log('Signed in', user);
+    const { senha: _, ...result } = user;
+    return result;
   }
 
   async update(id: number, newUser: UpdateUserDto): Promise<boolean> {
